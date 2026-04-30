@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kompres Pro</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: 'Press Start 2P', monospace;
+}
+
+body {
+    height:100vh;
+    overflow:hidden;
+    color:white;
+    text-align:center;
+}
+
+/* VIDEO FIX FULL SCREEN */
+video {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+    z-index: -1;
+    filter: brightness(0.5);
+}
+
+/* BOX UI */
+.box {
+    width: 320px;
+    padding: 20px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 15px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    backdrop-filter: blur(10px);
+}
+
+/* INPUT & BUTTON */
+input, select, button {
+    margin-top: 10px;
+    padding: 8px;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+}
+
+/* BUTTON STYLE */
+button {
+    background: #00c3ff;
+    color: white;
+    cursor: pointer;
+}
+
+/* PREVIEW */
+img {
+    margin-top: 10px;
+    max-width: 100%;
+    border-radius: 10px;
+}
+
+/* TEXT KECIL */
+small {
+    font-size: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- VIDEO -->
+<video autoplay muted loop playsinline webkit-playsinline>
+    <source src="video.mp4" type="video/mp4">
+</video>
+
+<div class="box">
+    <h3>KOMPRES PRO</h3>
+
+    <input type="file" id="upload">
+
+    <select id="target">
+        <option value="1">1 KB</option>
+        <option value="10">10 KB</option>
+        <option value="100">100 KB</option>
+    </select>
+
+    <button onclick="compress()">KOMPRES</button>
+
+    <small id="info"></small>
+
+    <img id="result">
+
+    <a id="download" download="hasil.jpg">
+        <button>DOWNLOAD</button>
+    </a>
+
+    <button onclick="back()">KEMBALI</button>
+</div>
+
+<script>
+function back(){
+    window.location.href = "home.html";
+}
+
+function compress(){
+    let file = document.getElementById("upload").files[0];
+    let targetKB = parseInt(document.getElementById("target").value);
+
+    if(!file) return alert("Pilih gambar dulu");
+
+    let img = new Image();
+    let reader = new FileReader();
+
+    reader.onload = function(e){
+        img.src = e.target.result;
+    }
+
+    img.onload = function(){
+        let canvas = document.createElement("canvas");
+        let ctx = canvas.getContext("2d");
+
+        let width = img.width;
+        let height = img.height;
+
+        canvas.width = width;
+        canvas.height = height;
+
+        let quality = 0.9;
+        let result;
+
+        function tryCompress(){
+            ctx.drawImage(img, 0, 0, width, height);
+            result = canvas.toDataURL("image/jpeg", quality);
+
+            let sizeKB = Math.round((result.length * 3/4) / 1024);
+
+            if(sizeKB > targetKB && quality > 0.1){
+                quality -= 0.05;
+                tryCompress();
+            } else {
+                document.getElementById("result").src = result;
+                document.getElementById("download").href = result;
+                document.getElementById("info").innerText =
+                    "SIZE: " + sizeKB + " KB";
+            }
+        }
+
+        tryCompress();
+    }
+
+    reader.readAsDataURL(file);
+}
+</script>
+
+</body>
+</html>
